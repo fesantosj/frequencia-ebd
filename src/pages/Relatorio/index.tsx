@@ -8,6 +8,7 @@ import { listarClasses } from "@/request/classeRequest";
 import { gerarRelatorioGeral } from "@/request/relatorioRequest";
 import { IGenericItemModel } from "@/interfaces/genericItemModel";
 import moment from "moment";
+import { base64ParaBlob, criarCaminhoBlob } from "@/utils/Utilidades";
 
 const Container = styled.div`
   flex: 1;
@@ -73,6 +74,7 @@ export default function Relatorio() {
     moment().format("YYYY-MM-DD"),
   );
   const [idClasse, setIdClasse] = useState("");
+  const [base64PDF, setBase64PDF] = useState<string | null>(null);
 
   useEffect(() => {
     dispatch(listarClasses());
@@ -93,16 +95,61 @@ export default function Relatorio() {
       payload.idClasse = idClasse;
     }
 
-    dispatch(gerarRelatorioGeral(payload)).then((res) => {
+    dispatch(gerarRelatorioGeral(payload)).then((res: any) => {
+      console.log("Relatório API Response (full):", res);
       if (gerarRelatorioGeral.fulfilled.match(res)) {
-        // Ideally prompt download or show success.
-        // Since I don't know the response format (PDF blob? JSON?), I'll just alert success.
-        alert("Relatório gerado com sucesso! (Verifique downloads ou console)");
-        console.log("Relatorio Response:", res.payload);
+        if (res.payload) {
+          // Extração robusta do base64
+          // Prioridade para: relatorioBase64 (confirmado pelo usuário), depois dados, data ou o próprio payload
+          const extracted =
+            res.payload.relatorioBase64 ||
+            res.payload?.dados ||
+            res.payload?.data ||
+            res.payload;
+          const base64 = typeof extracted === "string" ? extracted : "";
+
+          if (base64) {
+            setBase64PDF(base64);
+            alert(
+              "Relatório gerado com sucesso! Clique no botão vermelho para baixar o PDF.",
+            );
+          } else {
+            console.error(
+              "Payload não contém relatorioBase64 ou string válida:",
+              res.payload,
+            );
+            alert(
+              "Erro: O retorno do servidor não contém o relatório (formato inválido).",
+            );
+          }
+        } else {
+          alert("Erro: O servidor retornou resposta vazia.");
+        }
       } else {
         alert("Erro ao gerar relatório.");
       }
     });
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!base64PDF) return;
+
+    try {
+      const blob = await base64ParaBlob(base64PDF, "application/pdf");
+      const url = criarCaminhoBlob(blob);
+      const downloadLink = document.createElement("a");
+      const fileName = `Relatorio_Geral_${moment(dataRelatorio).format("DD_MM_YYYY")}.pdf`;
+
+      downloadLink.href = url;
+      downloadLink.download = fileName;
+      downloadLink.click();
+
+      // Clean up the URL object
+      setTimeout(() => URL.revokeObjectURL(url), 100);
+    } catch (error) {
+      console.error("Erro ao fazer download do PDF:", error);
+      alert("Erro ao processar o download do PDF.");
+    }
   };
 
   return (
@@ -135,6 +182,15 @@ export default function Relatorio() {
         </ContainerInput>
 
         <Button onClick={handleGerarRelatorio}>Obter Relatório Geral</Button>
+
+        {base64PDF && (
+          <Button
+            onClick={handleDownloadPDF}
+            style={{ backgroundColor: "#d32f2f", marginTop: "10px" }}
+          >
+            Fazer Download PDF
+          </Button>
+        )}
 
         <BackButton onClick={() => navigate("/")}>Voltar para Home</BackButton>
       </Form>

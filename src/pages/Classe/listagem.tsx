@@ -55,6 +55,22 @@ const Title = styled.h2`
   text-align: center;
 `;
 
+const BackButton = styled.button`
+  margin-top: 10px;
+  padding: 15px;
+  border-radius: 10px;
+  width: 100%;
+  border: 1px solid ${colors.primary};
+  background-color: transparent;
+  color: ${colors.primary};
+  font-weight: bold;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #e6f0fa;
+  }
+`;
+
 export default function ListagemClasses() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -89,7 +105,7 @@ export default function ListagemClasses() {
       <Title>Listagem de Classes</Title>
 
       <ListContainer>
-        {classesState.listagem?.map((item) => (
+        {classesState.listagem?.map((item: IGenericItemModel) => (
           <ItemListagem
             key={item.id}
             descricao={item.descricao}
@@ -111,10 +127,11 @@ export default function ListagemClasses() {
         )}
       </ListContainer>
 
-      <ContainerBotao>
+      <ContainerBotao style={{ flexDirection: "column", gap: "10px" }}>
         <BotaoAdd onClick={adicionarClasse}>
           <TextoBotaoAdd>Nova Classe</TextoBotaoAdd>
         </BotaoAdd>
+        <BackButton onClick={() => navigate("/")}>Voltar</BackButton>
       </ContainerBotao>
     </Container>
   );

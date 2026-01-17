@@ -33,7 +33,6 @@ const BotaoSair = styled.button`
   padding: 10px;
   border-radius: 5px;
   width: 100%;
-  max-width: 400px;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s;
