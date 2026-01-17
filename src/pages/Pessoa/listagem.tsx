@@ -153,6 +153,7 @@ export default function ListagemPessoas({ tipo }: ListagemPessoasProps) {
         <Select
           value={classeSelecionada || "todos"}
           onChange={handleClasseChange}
+          style={{ marginBottom: 0, height: 40, width: "100%" }}
         >
           <option value="todos">Todas as classes</option>
           {classe.listagem?.map((classe: IGenericItemModel) => (

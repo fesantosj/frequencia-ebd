@@ -166,7 +166,7 @@ export default function ListagemFrequencia() {
           <Select
             value={classeFiltro}
             onChange={(e) => setClasseFiltro(e.target.value)}
-            style={{ marginBottom: 0, height: 40 }}
+            style={{ marginBottom: 0, height: 40, width: "100%" }}
           >
             <option value="">Todas as Classes</option>
             {classes.listagem?.map((c: IGenericItemModel) => (
