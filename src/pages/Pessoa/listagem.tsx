@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import ItemListagem from "@/components/ItemListagem";
@@ -14,7 +14,7 @@ import {
 import colors from "@/theme/colors";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
-import { Select } from "@/Style";
+import { Select, Input } from "@/Style";
 
 interface ListagemPessoasProps {
   tipo: string;
@@ -29,12 +29,13 @@ const Container = styled.div`
 
 const SubheaderContainer = styled.div`
   display: flex;
-  flex-direction: row;
-  align-items: center;
+  flex-direction: column;
   background-color: ${colors.branco};
   border-radius: 10px;
   margin-bottom: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  gap: 10px;
 `;
 
 const ListContainer = styled.div`
@@ -99,19 +100,25 @@ export default function ListagemPessoas({ tipo }: ListagemPessoasProps) {
   const [classeSelecionada, setClasseSelecionada] = useState<string | null>(
     null,
   );
-  const [listaFiltrada, setListaFiltrada] = useState<IPessoa[]>([]);
+  const [busca, setBusca] = useState("");
 
   useEffect(() => {
     dispatch(listarClasses());
   }, []);
 
-  useEffect(() => {
-    setListaFiltrada(
+  const listaFiltrada = useMemo(() => {
+    let filtrados =
       pessoa.listagem?.filter(
         (item: IPessoa) => item.tipo.toUpperCase() === tipo.toUpperCase(),
-      ) || [],
-    );
-  }, [pessoa.listagem, tipo]);
+      ) || [];
+
+    if (busca) {
+      filtrados = filtrados.filter((item: IPessoa) =>
+        item.nome.toLowerCase().includes(busca.toLowerCase()),
+      );
+    }
+    return filtrados;
+  }, [pessoa.listagem, tipo, busca]);
 
   useEffect(() => {
     if (classeSelecionada) {
@@ -150,10 +157,21 @@ export default function ListagemPessoas({ tipo }: ListagemPessoasProps) {
   return (
     <Container>
       <SubheaderContainer>
+        <Input
+          placeholder="Pesquisar por nome..."
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          style={{
+            marginBottom: 0,
+            height: 45,
+            width: "100%",
+          }}
+        />
+
         <Select
           value={classeSelecionada || "todos"}
           onChange={handleClasseChange}
-          style={{ marginBottom: 0, height: 40, width: "100%" }}
+          style={{ marginBottom: 0, height: 45, width: "100%" }}
         >
           <option value="todos">Todas as classes</option>
           {classe.listagem?.map((classe: IGenericItemModel) => (
@@ -165,7 +183,7 @@ export default function ListagemPessoas({ tipo }: ListagemPessoasProps) {
       </SubheaderContainer>
 
       <ListContainer>
-        {listaFiltrada.map((item) => (
+        {listaFiltrada.map((item: IPessoa) => (
           <ItemListagem
             key={item.id!.toString()}
             descricao={item.nome}
