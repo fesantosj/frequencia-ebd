@@ -14,7 +14,7 @@ import colors from "@/theme/colors";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCalendarCheck } from "@fortawesome/free-solid-svg-icons";
 import moment from "moment";
-import { Select, Input } from "@/Style";
+import { Select, Input, Label } from "@/Style";
 
 const Container = styled.div`
   flex: 1;
@@ -101,7 +101,8 @@ export default function ListagemFrequencia() {
   const classes = useAppSelector((state) => state.classe);
 
   // Filtros
-  const [dataFiltro, setDataFiltro] = useState("");
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
   const [classeFiltro, setClasseFiltro] = useState("");
 
   const getNomeClasse = (idClasse: string) => {
@@ -137,9 +138,17 @@ export default function ListagemFrequencia() {
       let matchData = true;
       let matchClasse = true;
 
-      if (dataFiltro) {
-        matchData =
-          moment(item.dataFrequencia).format("YYYY-MM-DD") === dataFiltro;
+      if (dataInicio && dataFim) {
+        matchData = moment(item.dataFrequencia).isBetween(
+          dataInicio,
+          dataFim,
+          null,
+          "[]",
+        );
+      } else if (dataInicio) {
+        matchData = moment(item.dataFrequencia).isSameOrAfter(dataInicio);
+      } else if (dataFim) {
+        matchData = moment(item.dataFrequencia).isSameOrBefore(dataFim);
       }
 
       if (classeFiltro) {
@@ -147,22 +156,39 @@ export default function ListagemFrequencia() {
       }
 
       return matchData && matchClasse;
-    }) || [];
+    })
+      .sort((a, b) =>
+        moment(b.dataFrequencia).diff(moment(a.dataFrequencia)),
+      ) || [];
 
   return (
     <Container>
       <Title>Listagem de Frequências</Title>
 
-      <FilterContainer>
-        <div style={{ flex: 1 }}>
-          <Input
-            type="date"
-            value={dataFiltro}
-            onChange={(e) => setDataFiltro(e.target.value)}
-            style={{ marginBottom: 0, height: 40 }}
-          />
+      <FilterContainer style={{ flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", width: "100%", gap: 10 }}>
+          <div style={{ flex: 1 }}>
+            <Label style={{ fontSize: 14 }}>Data Início</Label>
+            <Input
+              type="date"
+              value={dataInicio}
+              onChange={(e) => setDataInicio(e.target.value)}
+              placeholder="Data Início"
+              style={{ marginBottom: 0, height: 40 }}
+            />
+          </div>
+          <div style={{ flex: 1 }}>
+            <Label style={{ fontSize: 14 }}>Data Fim</Label>
+            <Input
+              type="date"
+              value={dataFim}
+              onChange={(e) => setDataFim(e.target.value)}
+              placeholder="Data Fim"
+              style={{ marginBottom: 0, height: 40 }}
+            />
+          </div>
         </div>
-        <div style={{ flex: 1 }}>
+        <div style={{ width: "100%" }}>
           <Select
             value={classeFiltro}
             onChange={(e) => setClasseFiltro(e.target.value)}

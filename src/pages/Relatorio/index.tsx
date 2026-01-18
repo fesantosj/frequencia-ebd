@@ -73,7 +73,6 @@ export default function Relatorio() {
   const [dataRelatorio, setDataRelatorio] = useState(
     moment().format("YYYY-MM-DD"),
   );
-  const [idClasse, setIdClasse] = useState("");
   const [base64PDF, setBase64PDF] = useState<string | null>(null);
 
   useEffect(() => {
@@ -91,9 +90,6 @@ export default function Relatorio() {
     // So logic: dispatch(gerarRelatorioGeral({ dataFrequencia: ... }))
 
     const payload: any = { dataFrequencia: dataRelatorio };
-    if (idClasse) {
-      payload.idClasse = idClasse;
-    }
 
     dispatch(gerarRelatorioGeral(payload)).then((res: any) => {
       console.log("Relatório API Response (full):", res);
@@ -166,20 +162,7 @@ export default function Relatorio() {
           />
         </ContainerInput>
 
-        <ContainerInput>
-          <Label>Classe (Opcional)</Label>
-          <Select
-            value={idClasse}
-            onChange={(e) => setIdClasse(e.target.value)}
-          >
-            <option value="">Geral (Todas as classes)</option>
-            {classes.listagem?.map((c: IGenericItemModel) => (
-              <option key={c.id} value={c.id}>
-                {c.descricao}
-              </option>
-            ))}
-          </Select>
-        </ContainerInput>
+
 
         <Button onClick={handleGerarRelatorio}>Obter Relatório Geral</Button>
 

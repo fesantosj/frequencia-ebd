@@ -57,6 +57,7 @@ const ChamadaContainer = styled.div`
 `;
 
 const ChamadaItem = styled.div`
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -148,6 +149,18 @@ const Button = styled.button<{ secondary?: boolean }>`
   &:hover {
     opacity: 0.9;
   }
+`;
+
+const CompactContainerInput = styled(ContainerInput)`
+  margin-bottom: 0;
+`;
+
+const CompactInput = styled(Input)`
+  margin-bottom: 0;
+`;
+
+const CompactSelect = styled(Select)`
+  margin-bottom: 0;
 `;
 
 export default function ManterFrequencia() {
@@ -261,6 +274,20 @@ export default function ManterFrequencia() {
     });
   };
 
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
+  };
+
+  const handleOfertaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    const onlyDigits = value.replace(/\D/g, "");
+    const numberValue = Number(onlyDigits) / 100;
+    setTotalOferta(numberValue);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -273,15 +300,8 @@ export default function ManterFrequencia() {
       totalOferta,
       pessoas: chamada
         .filter((p) => p.isPresent)
-        .map((p) => ({ idPessoa: p.idPessoa, isPresent: true })), // API expects only presents usually? Or all? Usually just sending all statuses is safer.
-      // Based on typical API, sending the list of statuses.
-      // Let's send the full 'chamada' state or just the processed list.
-      // The interface says 'pessoas: IFrequenciaPessoa[]'.
+        .map((p) => ({ idPessoa: p.idPessoa, isPresent: true })),
     };
-
-    // We need to ensure we send ALL students with their status, not just presents,
-    // unless the backend infers absence. Safer to send state as is.
-    payload.pessoas = chamada;
 
     if (id) {
       payload.id = id;
@@ -318,13 +338,16 @@ export default function ManterFrequencia() {
       const isChecked = status ? status.isPresent : false;
 
       return (
-        <ChamadaItem key={pessoa.id}>
+        <ChamadaItem
+          key={pessoa.id}
+          onClick={() => togglePresenca(pessoa.id!, !isChecked)}
+        >
           <StudentName>{pessoa.nome}</StudentName>
-          <ToggleContainer>
+          <ToggleContainer onClick={(e) => e.stopPropagation()}>
             <ToggleInput
               type="checkbox"
               checked={isChecked}
-              onChange={(e) => togglePresenca(pessoa.id!, e.target.checked)}
+              readOnly
             />
             <ToggleSlider />
           </ToggleContainer>
@@ -337,20 +360,25 @@ export default function ManterFrequencia() {
     <Container>
       <Title>{id ? "Editar Frequência" : "Nova Frequência"}</Title>
 
-      <Form onSubmit={handleSubmit}>
-        <ContainerInput>
+      <Form
+        onSubmit={handleSubmit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.preventDefault();
+        }}
+      >
+        <CompactContainerInput>
           <Label>Data</Label>
-          <Input
+          <CompactInput
             type="date"
             value={dataFrequencia}
             onChange={(e) => setDataFrequencia(e.target.value)}
             required
           />
-        </ContainerInput>
+        </CompactContainerInput>
 
-        <ContainerInput>
+        <CompactContainerInput>
           <Label>Classe</Label>
-          <Select
+          <CompactSelect
             value={idClasse}
             onChange={handleClasseChange}
             required
@@ -362,45 +390,44 @@ export default function ManterFrequencia() {
                 {c.descricao}
               </option>
             ))}
-          </Select>
-        </ContainerInput>
+          </CompactSelect>
+        </CompactContainerInput>
 
         <div
           style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}
         >
-          <ContainerInput>
+          <CompactContainerInput>
             <Label>Bíblias</Label>
-            <Input
+            <CompactInput
               type="number"
               value={qtdBiblia}
               onChange={(e) => setQtdBiblia(Number(e.target.value))}
             />
-          </ContainerInput>
-          <ContainerInput>
+          </CompactContainerInput>
+          <CompactContainerInput>
             <Label>Revistas</Label>
-            <Input
+            <CompactInput
               type="number"
               value={qtdRevista}
               onChange={(e) => setQtdRevista(Number(e.target.value))}
             />
-          </ContainerInput>
-          <ContainerInput>
+          </CompactContainerInput>
+          <CompactContainerInput>
             <Label>Visitantes</Label>
-            <Input
+            <CompactInput
               type="number"
               value={qtdVisitante}
               onChange={(e) => setQtdVisitante(Number(e.target.value))}
             />
-          </ContainerInput>
-          <ContainerInput>
+          </CompactContainerInput>
+          <CompactContainerInput>
             <Label>Oferta (R$)</Label>
-            <Input
-              type="number"
-              step="0.01"
-              value={totalOferta}
-              onChange={(e) => setTotalOferta(Number(e.target.value))}
+            <CompactInput
+              type="text"
+              value={formatCurrency(totalOferta)}
+              onChange={handleOfertaChange}
             />
-          </ContainerInput>
+          </CompactContainerInput>
         </div>
 
         <SectionTitle>Alunos</SectionTitle>
